@@ -18,14 +18,12 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
     private Intent intent;
-    private void showGameOverDialog() {
+    private void showGameOverDialog(final int numIntents) {
 
         intent = new Intent(MainActivity.this, HallOfFame.class);
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Fi de la partida");
         builder.setMessage("Has endevinat el número. Felicitats!");
-
         builder.setPositiveButton("Tornar a jugar", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 dialog.dismiss();
@@ -33,6 +31,43 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.setNegativeButton("Mostrar taula de rècords", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
+                showAddRecordDialog(numIntents);
+                dialog.dismiss();
+            }
+        });
+        builder.create().show();
+    }
+    public void showAddRecordDialog(final int numIntents) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Hall Of Fame");
+        builder.setMessage("Abans d'anar a la taula, t'agradaria afegir el teu propi rècord?");
+        builder.setPositiveButton("Sí", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                showNewRecordDialog(numIntents);
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                startActivity(intent);
+                dialog.dismiss();
+            }
+        });
+        builder.create().show();
+    }
+    public void showNewRecordDialog(final int numIntents) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Afegir nou rècord");
+        builder.setMessage("Per afegir el teu nou rècord has d'introduir el teu nom.");
+
+        EditText input = new EditText(this);
+        builder.setView(input);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                intent.putExtra("nom", String.valueOf(input.getText()));
+                intent.putExtra("intents", numIntents);
                 startActivity(intent);
                 dialog.dismiss();
             }
@@ -58,9 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 if (actionId == EditorInfo.IME_ACTION_DONE || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
-                    if (!editText.getText().toString().isEmpty()) {
-                        button.setEnabled(true);
-                    }
+                    button.setEnabled(!editText.getText().toString().isEmpty() && Integer.parseInt(editText.getText().toString()) < 101);
                     return true;
                 }
                 return false;
@@ -70,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             int randomNumber = (int) ((Math.random() * (100 - 1 + 1)) + 1);
             int numIntents = 0;
-
             public void onClick(View v) {
 
                 if (randomNumber > Integer.parseInt(String.valueOf(editText.getText()))) {
@@ -84,10 +116,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 else {
-                    showGameOverDialog();
+                    showGameOverDialog(numIntents);
                     textView.setText("");
                     randomNumber = (int) ((Math.random() * (100 - 1 + 1)) + 1);
-                    intent.putExtra("intents", numIntents);
                 }
                 editText.setText("");
                 button.setEnabled(false);
